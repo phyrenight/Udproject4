@@ -1,0 +1,14 @@
+application: practice1-1247
+version: 1
+runtime: python27
+threadsafe: true 
+api_version: 1
+
+handlers:
+- url: /.*
+  script: index.APPLICATION
+  secure: always
+
+libraries:
+- name: endpoints
+  version: "1.0"
