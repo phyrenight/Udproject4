@@ -4,29 +4,31 @@ from protorpc import message_types
 from protorpc import remote
 
 REQUEST_LETTER = endpoints.ResourceContainer(
-	letter = messages.StringField(1),
+	message_types.VoidMessage,
+	name = messages.StringField(1),
 )
 REQUEST_WORD = endpoints.ResourceContainer(
-	word = messages.StringField(1),
+	name = messages.StringField(1),
 )
+package = "response"
 
 class Response(messages.Message):
     response = messages.StringField(1)
 
-@endpoints.api('hangmanEndPoints', version='1')
+@endpoints.api(name = 'hangmanEndPoints', version='1')
 class hangmanEndPoints(remote.Service):
 
-    @endpoints.method(REQUEST_LETTER, Response, path="letter_given", http_method="GET", name="letter")
+    @endpoints.method(REQUEST_LETTER, Response, path = "letter_given", http_method = "GET", name = "letter")
     def letterGiven(self, choice):
-        return response(choice=choice)
+    	letter = "{}".format(choice.name)
+        return Response(response=letter)
 
-    @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="Get", name="user_word")
+    @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
     def wordGiven(self, choice):
-    	return Response(choice)
+    	words = "{}".format(choice.name)
+    	return Response(response=words)
 
 
-print 'Content-type: text/plain'
-print ''
-print 'Hello there Chuck'
+
 
 APPLICATION = endpoints.api_server([hangmanEndPoints])
