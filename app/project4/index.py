@@ -26,13 +26,26 @@ class hangmanApi(remote.Service):
 
     @endpoints.method(REQUEST_LETTER, Response, path = "letter_given", http_method = "GET", name = "letter")
     def letterGiven(self, request):
-    	letter = "{}".format(request.name)
-        return Response(response=letter)
+        if request.name is None: 
+            return Response(response="Nothing entered. please enter a letter.")
+        letter = "{}".format(request.name)
+        if len(letter) > 1 or letter.isalpha() is False:
+            return Response(response="Please enter a letter")
+        else:
+            return Response(response="hi")
 
     @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
     def wordGiven(self, choice):
-    	words = "{}".format(choice.name)
-    	return Response(response=words)
+        #words = "{}".format(choice.name)
+        if choice.name is None:
+            return Response(response="nothing was entered")
+        words = "{}".format(choice.name)
+        if  words.isalpha() is False or len(words) < 2:
+           return Response(response="Please enter a word.")
+        else:
+            return Response(response="not in the word")
+        
+
 
     @endpoints.method(message_types.VoidMessage, Response, path="new_game", http_method="Get", name="new_game")
     def newGame(self, choice):
@@ -40,15 +53,25 @@ class hangmanApi(remote.Service):
         returns the hiddenWord
         """
         word = getWord()
-        #hiddenWord = hideWord(word)
-        return Response(response=word)
+        hiddenWord = hideWord(word)
+        return Response(response=hiddenWord)
 
 
-def getWord():
-	length = len(lst)
-	num = randint(0,length)
-	word = lst[num]
-	return word
+    def getWord():
+	    length = len(lst)
+	    num = randint(0,length)
+	    word = lst[num]
+	    return word
+
+
+    def hideWord(word):
+        length = len(word)
+        hidden = '*'*length
+        return hidden
+
+
+    def hitOrMiss():
+        pass
 
 
 APPLICATION = endpoints.api_server([hangmanApi])
