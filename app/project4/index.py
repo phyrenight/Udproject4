@@ -5,7 +5,8 @@ from protorpc import remote
 from random import randint
 
 lst = ["cat", "carp", "king"]
-
+word = "hello"
+hidden = ""
 REQUEST_LETTER = endpoints.ResourceContainer(
 	message_types.VoidMessage,
 	name = messages.StringField(1),
@@ -24,6 +25,7 @@ class Response(messages.Message):
 @endpoints.api(name='hangmanEndPoints', version='v1')
 class hangmanApi(remote.Service):
 
+
     @endpoints.method(REQUEST_LETTER, Response, path = "letter_given", http_method = "GET", name = "letter")
     def letterGiven(self, request):
         if request.name is None: 
@@ -32,7 +34,8 @@ class hangmanApi(remote.Service):
         if len(letter) > 1 or letter.isalpha() is False:
             return Response(response="Please enter a letter")
         else:
-            return Response(response="hi")
+            num = hitOrMissLetter(letter)
+            return Response(response=num)
 
     @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
     def wordGiven(self, choice):
@@ -57,21 +60,27 @@ class hangmanApi(remote.Service):
         return Response(response=hiddenWord)
 
 
-    def getWord():
-	    length = len(lst)
-	    num = randint(0,length)
-	    word = lst[num]
-	    return word
+def getWord():
+    length = len(lst)
+    num = randint(0,(length-1))
+    print num
+    word = lst[num]
+    return word
 
 
-    def hideWord(word):
-        length = len(word)
-        hidden = '*'*length
-        return hidden
+def hideWord(word):
+    length = len(word)
+    hidden = '*'*length
+    return hidden
 
-
-    def hitOrMiss():
-        pass
+ 
+def hitOrMissLetter(letter):
+    answer = 0
+    print word
+    while answer < (len(word)-1):
+        answer = word.find(letter)
+        print answer
+    return letter
 
 
 APPLICATION = endpoints.api_server([hangmanApi])
