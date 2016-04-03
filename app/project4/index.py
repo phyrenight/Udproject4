@@ -7,6 +7,9 @@ from random import randint
 lst = ["cat", "carp", "king"]
 word = "hello"
 hidden = ""
+incorrectGuess = 0
+maxGuess = 6
+
 REQUEST_LETTER = endpoints.ResourceContainer(
 	message_types.VoidMessage,
 	name = messages.StringField(1),
@@ -75,12 +78,32 @@ def hideWord(word):
 
  
 def hitOrMissLetter(letter):
-    answer = 0
-    print word
-    while answer < (len(word)-1):
-        answer = word.find(letter)
-        print answer
-    return letter
+	# update used letter bank to include letter
+    if word.find(letter) > -1:
+        lst = list(hidden)
+        place = 0
+        for i in word:
+            if i == letter:
+                lst[place] = i
+            place += 1
+        hidden = "".join(lst)
+        if hidden == word:
+        	return "You have guessed the word."
+        else:
+            return "{} was found in the word".format(letter)
+    else:
+    	incorrectGuess += 1
+        if incorrectGuess == maxGuess
+            return "ypu have failed to guess this word."
+        else:
+    	    return "{} is not in the word. ".format(letter)
 
+
+def hitOrMissWord(guess):
+    if guess == word:
+        return "You guessed the word: {}".format(word)
+    else:
+    	incorrectGuess += 1
+    	return "you guessed wrong."
 
 APPLICATION = endpoints.api_server([hangmanApi])
