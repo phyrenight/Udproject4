@@ -40,9 +40,9 @@ class hangmanApi(remote.Service):
             num = hitOrMissLetter(letter)
             return Response(response=num)
 
+
     @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
     def wordGiven(self, choice):
-        #words = "{}".format(choice.name)
         if choice.name is None:
             return Response(response="nothing was entered")
         words = "{}".format(choice.name)
@@ -79,6 +79,7 @@ def hideWord(word):
  
 def hitOrMissLetter(letter):
 	# update used letter bank to include letter
+    incorrectGuess = 0
     if word.find(letter) > -1:
         lst = list(hidden)
         place = 0
@@ -91,10 +92,11 @@ def hitOrMissLetter(letter):
         	return "You have guessed the word."
         else:
             return "{} was found in the word".format(letter)
+
     else:
     	incorrectGuess += 1
-        if incorrectGuess == maxGuess
-            return "ypu have failed to guess this word."
+        if incorrectGuess == maxGuess:
+            return "you have failed to guess this word."
         else:
     	    return "{} is not in the word. ".format(letter)
 
@@ -111,8 +113,8 @@ def genericHangman():
     """
        generic images for hangman progress.
     """ 
-    if incorrect_guess == 0:
-        """
+    if incorrectGuess == 0:
+        return """
              ______
              |    |
              |
@@ -123,20 +125,8 @@ def genericHangman():
          |--------|
         """
     
-    elif incorrect_guess == 1:
-        """
-             ______
-             |    |
-             |    o
-             |
-             |
-             |
-             |
-         |--------|
-        """
-    
-    elif incorrect_guess == 2:
-        """
+    elif incorrectGuess == 1:
+        return """
              ______
              |    |
              |    o
@@ -147,8 +137,19 @@ def genericHangman():
          |--------|
         """
     
-    elif incorrect_guess == 3:
-        
+    elif incorrectGuess == 2:
+        return """
+             ______
+             |    |
+             |    o
+             |
+             |
+             |
+             |
+         |--------|
+        """
+    
+    elif incorrectGuess == 3:   
         return  """
             ______
             |    |
@@ -160,7 +161,7 @@ def genericHangman():
          |--------|
         """
 
-    elif incorrect_guess == 4:
+    elif incorrectGuess == 4:
     	return """
             ______
             |    |
@@ -172,7 +173,7 @@ def genericHangman():
         |--------|
         """
     
-    elif incorrect_guess == 5:
+    elif incorrectGuess == 5:
         return """
             ______
             |    |
@@ -184,7 +185,7 @@ def genericHangman():
         |--------|
         """
 
-    elif incorrect_guess == 6:
+    elif incorrectGuess == 6:
         return """
             ______
             |    |
