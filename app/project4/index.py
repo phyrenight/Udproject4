@@ -106,4 +106,107 @@ def hitOrMissWord(guess):
     	incorrectGuess += 1
     	return "you guessed wrong."
 
+
+def genericHangman():
+    """
+       generic images for hangman progress.
+    """ 
+    if incorrect_guess == 0:
+        """
+             ______
+             |    |
+             |
+             |
+             |
+             |
+             |
+         |--------|
+        """
+    
+    elif incorrect_guess == 1:
+        """
+             ______
+             |    |
+             |    o
+             |
+             |
+             |
+             |
+         |--------|
+        """
+    
+    elif incorrect_guess == 2:
+        """
+             ______
+             |    |
+             |    o
+             |
+             |
+             |
+             |
+         |--------|
+        """
+    
+    elif incorrect_guess == 3:
+        
+        return  """
+            ______
+            |    |
+            |    o
+            |    |
+            |
+            |
+            |
+         |--------|
+        """
+
+    elif incorrect_guess == 4:
+    	return """
+            ______
+            |    |
+            |    o
+            |   /|
+            |
+            |
+            |
+        |--------|
+        """
+    
+    elif incorrect_guess == 5:
+        return """
+            ______
+            |    |
+            |    o
+            |   /|\
+            |
+            |
+            |
+        |--------|
+        """
+
+    elif incorrect_guess == 6:
+        return """
+            ______
+            |    |
+            |    o
+            |   /|\
+            |   /
+            |
+            |
+        |--------|
+        """
+
+    else:
+    	return """
+            ______
+            |    |
+            |    o
+            |   /|\
+            |   / \
+            |
+            |
+        |--------|
+        """
+
+
 APPLICATION = endpoints.api_server([hangmanApi])
