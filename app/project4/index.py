@@ -4,11 +4,12 @@ from protorpc import message_types
 from protorpc import remote
 from random import randint
 
+from models import Game
+
 lst = ["cat", "carp", "king"]
 word = "hello"
-hidden = ""
-incorrectGuess = 0
-maxGuess = 6
+
+
 
 REQUEST_LETTER = endpoints.ResourceContainer(
 	message_types.VoidMessage,
@@ -19,28 +20,40 @@ REQUEST_WORD = endpoints.ResourceContainer(
 )
 
 REQUEST_NEW_GAME = endpoints.ResourceContainer(
-    name = messages.StringField(1),
-	)
+    message_types.VoidMessage,
+    )
 
 class Response(messages.Message):
     response = messages.StringField(1)
+    progress = messages.StringField(2)
+    guess = messages.IntegerField(3)
+    lettersUsed = messages.StringField(4)
+
+class NewGame(messages.Message):
+    word = messages.StringField(1)
+    progress = messages.StringField(2)
+    guess = messages.IntegerField(3)
+    lettersUsed = messages.StringField(4)
 
 @endpoints.api(name='hangmanEndPoints', version='v1')
 class hangmanApi(remote.Service):
+    game  = Game(word="Cat", progress="***", lettersUsed="", guesses=0)
+    game.put()
 
-
+    # write a if statement to test if letter is in lettersUsed before continuing
     @endpoints.method(REQUEST_LETTER, Response, path = "letter_given", http_method = "GET", name = "letter")
     def letterGiven(self, request):
         if request.name is None: 
             return Response(response="Nothing entered. please enter a letter.")
-        letter = "{}".format(request.name)
-        if len(letter) > 1 or letter.isalpha() is False:
-            return Response(response="Please enter a letter")
-        else:
-            num = hitOrMissLetter(letter)
-            return Response(response=num)
+        else:   
+            letter = "{}".format(request.name)
+            if len(letter) > 1 or letter.isalpha() is False:
+               return Response(response="Please enter a letter")
+            else:
+               num = hitOrMissLetter(letter, self.game)
+               return Response(response=num)
 
-
+    """
     @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
     def wordGiven(self, choice):
         if choice.name is None:
@@ -50,64 +63,87 @@ class hangmanApi(remote.Service):
            return Response(response="Please enter a word.")
         else:
             return Response(response="not in the word")
-        
+    """    
 
 
-    @endpoints.method(message_types.VoidMessage, Response, path="new_game", http_method="Get", name="new_game")
+    @endpoints.method(message_types.VoidMessage, NewGame, path="new_game", http_method="Get", name="new_game")
     def newGame(self, choice):
-        """ starts the game
-        returns the hiddenWord
+        """ 
+            args: choice - contains the users guessed letter
+            starts the game
+            returns the hiddenWord
         """
         word = getWord()
         hiddenWord = hideWord(word)
-        return Response(response=hiddenWord)
+        game = Game(word=word, progress=hiddenWord, guesses=0, lettersUsed="")
+        game.put()
+        return NewGame(word=game.word, progress=game.progress,
+                       guess=game.guesses, lettersUsed=game.lettersUsed)
 
 
 def getWord():
+    """
+	    gets a word from the word bank
+    """
     length = len(lst)
     num = randint(0,(length-1))
-    print num
     word = lst[num]
     return word
 
 
 def hideWord(word):
+    """
+        args: word - user
+        hides the word so the user can guess it.
+    """
     length = len(word)
     hidden = '*'*length
     return hidden
 
  
-def hitOrMissLetter(letter):
-	# update used letter bank to include letter
-    incorrectGuess = 0
-    if word.find(letter) > -1:
-        lst = list(hidden)
+def hitOrMissLetter(letter, game):
+    """
+       args: letter- user's letter guess
+       checks to see if the word contains the guesses letter.
+       returns: a message if you passsed or failed.
+    """
+    maxGuess = 6
+    guess = game.lettersUsed
+    game.lettersUsed = guess + " " + letter # place holder till letterUsed can be changed to a ListProperty 
+    # update used letter bank to include letter
+    if game.word.find(letter) > -1:
+        lst = list(game.progress)
         place = 0
-        for i in word:
+        for i in game.word:
             if i == letter:
                 lst[place] = i
             place += 1
-        hidden = "".join(lst)
-        if hidden == word:
+        game.progress = "".join(lst)
+        if game.progress == game.word:
         	return "You have guessed the word."
         else:
+            game.put()
             return "{} was found in the word".format(letter)
 
     else:
-    	incorrectGuess += 1
-        if incorrectGuess == maxGuess:
+    	game.guesses += 1
+        if game.guesses == maxGuess:
             return "you have failed to guess this word."
         else:
-    	    return "{} is not in the word. ".format(letter)
-
-
+    	    return "{} is not in the word. ".format(game.lettersUsed)
+"""
+# may be deleted haven't decided
 def hitOrMissWord(guess):
+    """
+        args: guess - contains the users guessed 
+        checks to see if word guess was right.
+    """
     if guess == word:
         return "You guessed the word: {}".format(word)
     else:
     	incorrectGuess += 1
     	return "you guessed wrong."
-
+"""
 
 def genericHangman():
     """
