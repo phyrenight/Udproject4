@@ -1,14 +1,14 @@
 from google.appengine.ext import ndb
 
-class User(ndb.model):
-    name = ndb.StringProperty(required=True)
+
+class User(ndb.Model):
+   # name = ndb.StringProperty(required=True)
     email = ndb.StringProperty(required=True)
-    # currentWord = ndb.StringProperty()
-    # currentHiddenWord = ndb.StringProperty()
+    password = ndb.StringProperty(required=True)
 
 
 class Game(ndb.Model):
-	# player = ndb.StringProperty()
+	# player = ndb.StringProperty(required=True kind='User')
 	word = ndb.StringProperty()
 	progress = ndb.StringProperty()  # hidden word displaying the parts
 	                                 # that have been guessed right
