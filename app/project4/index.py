@@ -6,12 +6,13 @@ from random import randint
 import random
 import string
 from models import Game, User
+from models import NewGameForm
 import hashlib
 lst = ["cat", "carp", "king"]
 word = "hello"
 
 
-
+# used for returninga value
 REQUEST_LETTER = endpoints.ResourceContainer(
     message_types.VoidMessage,
     name = messages.StringField(1),
@@ -21,16 +22,22 @@ REQUEST_WORD = endpoints.ResourceContainer(
 )
 
 REQUEST_NEW_GAME = endpoints.ResourceContainer(
-    message_types.VoidMessage,
+    user_name = messages.StringField(1),
     )
 
 REGISTER_USER = endpoints.ResourceContainer(
-  #  user = messages.StringField(1),
-    pwd = messages.StringField(2),
-    verifyPwd = messages.StringField(3),
+    name = messages.StringField(1),
+   # pwd = messages.StringField(2),
+   # verifyPwd = messages.StringField(3),
     email = messages.StringField(4),
     )
 
+LOGIN_USER = endpoints.ResourceContainer(
+    email = messages.StringField(1),
+    pwd = messages.StringField(2),
+    )
+
+# used for getting values from the user
 class Response(messages.Message):
     response = messages.StringField(1)
     progress = messages.StringField(2)
@@ -41,19 +48,14 @@ class NewGame(messages.Message):
     word = messages.StringField(1)
     progress = messages.StringField(2)
     guess = messages.IntegerField(3)
-    lettersUsed = messages.StringField(4)
+    hint = messages.StringField(4)
 
-class RegisterUser(messages.Message):
+class SingleMessage(messages.Message):
     response = messages.StringField(1)
-
-
 
 @endpoints.api(name='hangmanEndPoints', version='v1')
 class hangmanApi(remote.Service):
-    game  = Game(word="Cat", progress="***", lettersUsed="", guesses=0)
-    game.put()
 
-    
     # write a if statement to test if letter is in lettersUsed before continuing
     @endpoints.method(REQUEST_LETTER, Response, path="letter_given", http_method="GET", name="letter")
     def letterGiven(self, request):
@@ -67,59 +69,32 @@ class hangmanApi(remote.Service):
                num = hitOrMissLetter(letter, self.game)
                return Response(response=num)
     
-    """
-    @endpoints.method(REQUEST_WORD, Response, path="word_given", http_method="GET", name="user_word")
-    def wordGiven(self, choice):
-        if choice.name is None:
-            return Response(response="nothing was entered")
-        words = "{}".format(choice.name)
-        if  words.isalpha() is False or len(words) < 2:
-           return Response(response="Please enter a word.")
-        else:
-            return Response(response="not in the word")
-    """    
-
-    
-    @endpoints.method(message_types.VoidMessage, NewGame, path="new_game", http_method="Get", name="new_game")
-    def newGame(self, choice):
+    @endpoints.method(REQUEST_NEW_GAME, NewGameForm, path="new_game", http_method="Get", name="new_game")
+    def newGame(self, request):
         """ 
             args: choice - contains the users guessed letter
             starts the game
             returns the hiddenWord
         """
-        word = getWord()
-        hiddenWord = hideWord(word)
-        game = Game(word=word, progress=hiddenWord, guesses=0, lettersUsed="")
-        game.put()
-        return NewGame(word=game.word, progress=game.progress,
-                       guess=game.guesses, lettersUsed=game.lettersUsed)
+        print request.user_name
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                        "That user does not exist")
+        game = Game.new_game(user.key)
+        return game.get_form()
 
-    @endpoints.method(REGISTER_USER, RegisterUser, path='register_User', http_method="POST", name='register_User')
+    @endpoints.method(REGISTER_USER, SingleMessage, path='register_User', http_method="POST", name='register_User')
     def UserRegister(self, request):
   
-      #  print request.user
-        print request.pwd
-        print request.verifyPwd
-        print request.email
-        if request.pwd == request.verifyPwd:
-            user = User()
-            user.email = request.email
-            user.password = self.encrypt(request)
-            user.put()
-            return RegisterUser(response="New user registered")
-        else:
-            return RegisterUser(response="Please make sure your passwords match.")
-    
-    @endpoints.method()
-    def Userlogin():
-        pass
+        user = User()
+        user.name = request.name
+        user.email = request.email
+        user.put()
+        return SingleMessage(response="New user registered")
 
-    def encrypt(self, request):
-        self.salt = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase) for i in range(5))
-        self.passwordHash = hashlib.sha256(request.email + request.pwd + self.salt).hexdigest() 
-        return " %s,%s" % (self.passwordHash, self.salt)
-  
-    def cancel_game():
+    
+    def CancelGame(self,):
         pass
 
 def getWord():
@@ -131,17 +106,6 @@ def getWord():
     word = lst[num]
     return word
 
-
-def hideWord(word):
-    """
-        args: word - user
-        hides the word so the user can guess it.
-    """
-    length = len(word)
-    hidden = '*'*length
-    return hidden
-
- 
 def hitOrMissLetter(letter, game):
     """
        args: letter- user's letter guess
@@ -173,128 +137,5 @@ def hitOrMissLetter(letter, game):
         else:
             return "{} is not in the word. ".format(game.lettersUsed)
 
-
-"""
-# may be deleted haven't decided
-def hitOrMissWord(guess):
-    "
-        args: guess - contains the users guessed 
-        checks to see if word guess was right.
-    "
-    if guess == word:
-        return "You guessed the word: {}".format(word)
-    else:
-        incorrectGuess += 1
-        return "you guessed wrong."
-"""
-def genericHangman():
-    """
-       generic images for hangman progress.
-    """ 
-    if incorrectGuess == 0:
-        return """
-             ______
-             |    |
-             |
-             |
-             |
-             |
-             |
-         |--------|
-        """
-    
-    elif incorrectGuess == 1:
-        return """
-             ______
-             |    |
-             |    o
-             |
-             |
-             |
-             |
-         |--------|
-        """
-    
-    elif incorrectGuess == 2:
-        return """
-             ______
-             |    |
-             |    o
-             |
-             |
-             |
-             |
-         |--------|
-        """
-    
-    elif incorrectGuess == 3:   
-        return  """
-            ______
-            |    |
-            |    o
-            |    |
-            |
-            |
-            |
-         |--------|
-        """
-
-    elif incorrectGuess == 4:
-        return """
-            ______
-            |    |
-            |    o
-            |   /|
-            |
-            |
-            |
-        |--------|
-        """
-    
-    elif incorrectGuess == 5:
-        return """
-            ______
-            |    |
-            |    o
-            |   /|\
-            |
-            |
-            |
-        |--------|
-        """
-
-    elif incorrectGuess == 6:
-        return """
-            ______
-            |    |
-            |    o
-            |   /|\
-            |   /
-            |
-            |
-        |--------|
-        """
-
-    else:
-        return """
-            ______
-            |    |
-            |    o
-            |   /|\
-            |   / \
-            |
-            |
-        |--------|
-        """
-    
-
-
-"""
-
-
-    @endpoints.method()
-    def Userlogout():
-        pass
-"""
 
 APPLICATION = endpoints.api_server([hangmanApi])
