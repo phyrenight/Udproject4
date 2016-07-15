@@ -7,7 +7,7 @@ from wordnik import *
 
 
 apiUrl = 'http://api.wordnik.com/v4'
-apiKey = 
+apiKey = "2551259012aa25070f29c8321e8f982d5c6999b433b6ab11e"
 client = swagger.ApiClient(apiKey, apiUrl)
 
 class User(ndb.Model):
@@ -48,17 +48,17 @@ class Game(ndb.Model):
         game.progress = hidden
         game.hint =  definition
         game.word =  word
-       # game.put()
+        game.put()
         return game
 
-    def get_form(cls, message):
+    def get_form(self, message):
         form = NewGameForm()
-        form.urlsafeKey = cls.user.urlsafe()
-        form.userName = cls.user.get().name
+        form.urlsafeKey = self.key.urlsafe()
+        form.userName = self.user.get().name
         form.message = message
-        form.hint = cls.hint
-        form.word = cls.word
-        form.progress = cls.progress
+        form.hint = self.hint
+        form.word = self.word
+        form.progress = self.progress
         return form
 
     def getWord(self):
