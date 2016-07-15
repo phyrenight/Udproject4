@@ -15,7 +15,7 @@ word = "hello"
 # used for returninga value
 REQUEST_LETTER = endpoints.ResourceContainer(
     message_types.VoidMessage,
-    name = messages.StringField(1),
+    letter = messages.StringField(1),
 )
 REQUEST_WORD = endpoints.ResourceContainer(
     name = messages.StringField(1),
@@ -57,12 +57,12 @@ class SingleMessage(messages.Message):
 class hangmanApi(remote.Service):
 
     # write a if statement to test if letter is in lettersUsed before continuing
-    @endpoints.method(REQUEST_LETTER, Response, path="letter_given", http_method="GET", name="letter")
+    @endpoints.method(REQUEST_LETTER, Response, path="game/{urlsafeKey}", http_method="GET", name="letter")
     def letterGiven(self, request):
-        if request.name is None: 
+        if request.letter is None: 
             return Response(response="Nothing entered. please enter a letter.")
         else:   
-            letter = "{}".format(request.name)
+            letter = "{}".format(request.letter)
             if len(letter) > 1 or letter.isalpha() is False:
                return Response(response="Please enter a letter")
             else:
@@ -73,18 +73,23 @@ class hangmanApi(remote.Service):
     def newGame(self, request):
         """ 
             args: choice - contains the users guessed letter
-            starts the game
-            returns the hiddenWord
+            creates a new game
+            returns: user - urlsafekey based off of the users key
+                     hint - definitin of the word
+                     word - a randomly generated word
+                     progress - astericks string that is as long as the word
         """
-        print request.user_name
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
                         "That user does not exist")
+      #  print user
         game = Game.new_game(user.key)
-        return game.get_form()
+       # print game.user
+        return game.get_form("Good luck")
 
-    @endpoints.method(REGISTER_USER, SingleMessage, path='register_User', http_method="POST", name='register_User')
+    @endpoints.method(REGISTER_USER, SingleMessage, path='register_User',
+                      http_method="POST", name='register_User')
     def UserRegister(self, request):
   
         user = User()
@@ -93,18 +98,35 @@ class hangmanApi(remote.Service):
         user.put()
         return SingleMessage(response="New user registered")
 
-    
-    def CancelGame(self,):
-        pass
+     
+    @endpoints.method(path='cancel_game/{ urlsafeKey }', http_method="POST",
+                     name='cancel_game')
+    def CancelGame(self, request):
+        game = get_by_urlsafe(request.urlsafeKey, Game)
+        if game.end_game:
+            return game.to_form('game already ended.')
+        else:
+            game.end_game = True
+            game.put()
+            return game.to_form('game_cancelled.')
 
-def getWord():
-    """
-        gets a word from the word bank
-    """
-    length = len(lst)
-    num = randint(0,(length-1))
-    word = lst[num]
-    return word
+    @endpoints.method(REQUEST_WORD,path='game_history/{ name }', name='user_history', http_method="GET")
+    def get_history(self,request):
+        try:
+            user = Games.query(Game.user == request.name)
+            print user
+            return UserGames(items=[i.get_form() for i in Games.query(Game.User == request.user)])
+        except:
+            pass
+
+    @endpoints.method(path='game/{urlsafeKey}', http_method='GET', name='game')
+    def get_game(self, request):
+        """
+            gets a single game
+        """
+        game = get_by_urlsafe(request.urlsafeKey, Game)
+        return game.to_form()
+
 
 def hitOrMissLetter(letter, game):
     """
