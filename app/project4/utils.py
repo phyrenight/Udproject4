@@ -17,10 +17,6 @@ def get_by_urlsafe(urlsafe, model):
         ValueError:"""
     try:
         key = ndb.Key(urlsafe=urlsafe)
-        print "******************"
-        print key
-        print key
-        print "******************"
     except TypeError:
         raise endpoints.BadRequestException('Invalid Key')
     except Exception, e:

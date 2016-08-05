@@ -6,7 +6,7 @@ from random import randint
 import random
 import string
 from models import Game, User
-from models import NewGameForm
+from models import NewGameForm, UsersGames, UserScores
 import hashlib
 from utils import get_by_urlsafe
 lst = ["cat", "carp", "king"]
@@ -19,7 +19,8 @@ REQUEST_GAME = endpoints.ResourceContainer(
 )
 REQUEST_LETTER = endpoints.ResourceContainer(
     message_types.VoidMessage,
-    letter = messages.StringField(1),
+    urlsafeKey = messages.StringField(1),
+    letter = messages.StringField(2),
 )
 REQUEST_WORD = endpoints.ResourceContainer(
     name = messages.StringField(1),
@@ -41,7 +42,13 @@ LOGIN_USER = endpoints.ResourceContainer(
     pwd = messages.StringField(2),
     )
 
+
 # used for getting values from the user
+class ScoreForm(messages.Message):
+    player = messages.StringField(1)
+    score = messages.IntegerField(2)
+    date = messages.StringField(3)
+
 class Response(messages.Message):
     response = messages.StringField(1)
     progress = messages.StringField(2)
@@ -58,10 +65,10 @@ class SingleMessage(messages.Message):
     response = messages.StringField(1)
 
 @endpoints.api(name='hangmanEndPoints', version='v1')
-class hangmanApi(remote.Service):
+class hangmanApi(remote.Service): # change to HangManApi
 
     # write a if statement to test if letter is in lettersUsed before continuing
-    @endpoints.method(REQUEST_LETTER, Response, path="game/", http_method="GET", name="letter")
+    @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="GET", name="letter")
     def letterGiven(self, request):
         if request.letter is None: 
             return Response(response="Nothing entered. please enter a letter.")
@@ -111,24 +118,43 @@ class hangmanApi(remote.Service):
             game.put()
             return game.get_form('game_cancelled.')
 
-    @endpoints.method(REQUEST_WORD, path='game_history/{ name }', name='user_history', http_method="GET")
+    @endpoints.method(REQUEST_WORD, UsersGames, path='game_history/{name}', name='user_history', http_method="GET")
     def get_history(self,request):
-        try:
-            user = Games.query(Game.user == request.name)
-            print user
-            return UserGames(items=[i.get_form() for i in Games.query(Game.User == request.user)])
-        except:
-            pass
+       # try:
+        print request.name
+        user = User.query(User.name == request.name).get()
+        print user.key
+        games = Game.query(Game.user == user.key)
+        #print games.user
+        return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
+        #except:
+           # print "user not found"
+           # pass
 
-    @endpoints.method(REQUEST_GAME, path='game/{urlsafeKey}', http_method='GET', name='game')
+    @endpoints.method(REQUEST_GAME, NewGameForm, path='game/{urlsafeKey}', http_method='GET', name='game')
     def get_game(self, request):
         """
             gets a single game
         """
+        # add try  incase game does not exist 
+        # think of adding a check so only game owner can access game
+        # add check to maek sure game is active
         game = get_by_urlsafe(request.urlsafeKey, Game)
-        return game.to_form()
+        return game.get_form() # "game retrieved") fix this should take a message or not???
 
-
+    @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
+    def get_user_score(self, request):
+        try:
+            user = User.query(User.name == request.name).get()
+            userScores = Score.query(Score.player == user.name)
+            return UserScores(items=[i.get_form() for i in Score.query(Score.Player == request.user)])
+        except:
+            pass    
+"""
+    @endpoints.method()
+    def get_high_score(self, request):
+        highScore = Score.query()
+"""
 def hitOrMissLetter(letter, game):
     """
        args: letter- user's letter guess
@@ -159,6 +185,8 @@ def hitOrMissLetter(letter, game):
             return "you have failed to guess this word."
         else:
             return "{} is not in the word. ".format(game.lettersUsed)
+
+
 
 
 APPLICATION = endpoints.api_server([hangmanApi])

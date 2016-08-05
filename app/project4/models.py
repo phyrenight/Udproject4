@@ -51,11 +51,11 @@ class Game(ndb.Model):
         game.put()
         return game
 
-    def get_form(self, message):
+    def get_form(self):
         form = NewGameForm()
         form.urlsafeKey = self.key.urlsafe()
         form.userName = self.user.get().name
-        form.message = message
+       # form.message = message
         form.hint = self.hint
         form.word = self.word
         form.progress = self.progress
@@ -79,11 +79,33 @@ class NewGameForm(messages.Message):
     urlsafeKey =  messages.StringField(1, required=True)
     userName = messages.StringField(2, required=True)
     hint = messages.StringField(3, required=True)
-    message = messages.StringField(4, required=True)
+#    message = messages.StringField(4, required=True)
     word = messages.StringField(5, required=True)
     progress = messages.StringField(6, required=True)
 
+
 class Score(ndb.Model):
-	player = ndb.StringProperty(required=True)
-	score = ndb.IntegerProperty(required=True)
-	date = ndb.DateTimeProperty(auto_now_add=True)
+    player = ndb.StringProperty(required=True)
+    score = ndb.IntegerProperty(required=True)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    won = ndb.BooleanProperty(required=True)
+
+    def get_form(self):
+        score = ScoreForm()
+        score.player = self.user.get().name
+        score.date = str(self.date)
+        score.won = self.won
+        score.score = self.score
+        return score
+
+class ScoreForm(messages.Message):
+    name = messages.StringField(1, required=True)
+    date = messages.StringField(2, required=True)
+    won = messages.BooleanField(3, required=True)
+    score = messages.IntegerField(4, required=True)
+
+class UsersGames(messages.Message):
+    items = messages.MessageField(NewGameForm, 1, repeated=True)
+
+class UserScores(messages.Message):
+    items = messages.MessageField(ScoreForm, 1, repeated=True)
