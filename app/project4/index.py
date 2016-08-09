@@ -5,7 +5,7 @@ from protorpc import remote
 from random import randint
 import random
 import string
-from models import Game, User
+from models import Game, User, Letters
 from models import NewGameForm, UsersGames, UserScores
 import hashlib
 from utils import get_by_urlsafe
@@ -53,7 +53,7 @@ class Response(messages.Message):
     response = messages.StringField(1)
     progress = messages.StringField(2)
     guess = messages.IntegerField(3)
-    lettersUsed = messages.StringField(4)
+    lettersUsed = messages.StringField(4, repeated=True)
 
 class NewGame(messages.Message):
     word = messages.StringField(1)
@@ -77,8 +77,14 @@ class hangmanApi(remote.Service): # change to HangManApi
             if len(letter) > 1 or letter.isalpha() is False:
                return Response(response="Please enter a letter")
             else:
-               num = hitOrMissLetter(letter, self.game)
-               return Response(response=num)
+               game_data = get_by_urlsafe(request.urlsafeKey, Game)
+               game = Game.query().get()
+               n = game.lettersUsed[0]
+               print game.lettersUsed[0]
+               print game.word
+               num = hitOrMissLetter(letter, game)
+               return Response(response=num, progress=game.progress,
+                               lettersUsed=game.lettersUsed)# Letters(items=[i.get_letter() for i in game.lettersUsed]))
     
     @endpoints.method(REQUEST_NEW_GAME, NewGameForm, path="new_game", http_method="GET", name="new_game")
     def newGame(self, request):
@@ -139,7 +145,7 @@ class hangmanApi(remote.Service): # change to HangManApi
         # add try  incase game does not exist 
         # think of adding a check so only game owner can access game
         # add check to maek sure game is active
-        game = get_by_urlsafe(request.urlsafeKey, Game)
+        game = get_by_urlsafe(request.urlsafeKey, Game) 
         return game.get_form() # "game retrieved") fix this should take a message or not???
 
     @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
@@ -163,7 +169,11 @@ def hitOrMissLetter(letter, game):
     """
     maxGuess = 6
     guess = game.lettersUsed
-    game.lettersUsed = guess + " " + letter # place holder till letterUsed can be changed to a ListProperty 
+    if game.lettersUsed[0] is None:
+        print "hello"
+        game.lettersUsed = [] 
+    game.lettersUsed.append(letter) # place holder till letterUsed can be changed to a ListProperty 
+    print game.lettersUsed
     # update used letter bank to include letter
     if game.word.find(letter) > -1:
         lst = list(game.progress)

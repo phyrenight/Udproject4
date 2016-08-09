@@ -23,7 +23,7 @@ class Game(ndb.Model):
                                      # that have been guessed right
     guesses = ndb.IntegerProperty(default=6)    # number of incoorect guesses
     guessesRemaining = ndb.IntegerProperty(default=6)
-    lettersUsed = ndb.StringProperty()  # list of all letters used so far this game
+    lettersUsed = ndb.StringProperty(repeated=True)  # list of all letters used so far this game
     hint = ndb.StringProperty()
     user = ndb.KeyProperty(required=True, kind='User')
     endGame = ndb.BooleanProperty(required=True, default=False)
@@ -74,6 +74,12 @@ class Game(ndb.Model):
     		                                sourceDictionaries='wiktionary',
     		                                limit=1)[0].text
         return word, definition
+    
+
+    def get_letter(self):
+        letter = Letter()
+        letter.letter = self.letter
+        return letter
 
 class NewGameForm(messages.Message):
     urlsafeKey =  messages.StringField(1, required=True)
@@ -109,3 +115,9 @@ class UsersGames(messages.Message):
 
 class UserScores(messages.Message):
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+class Letter(messages.Message):
+    letter = messages.StringField(1)
+
+class Letters(messages.Message):
+    items = messages.StringField( 1, repeated=True) 
