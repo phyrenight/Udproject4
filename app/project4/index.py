@@ -76,14 +76,17 @@ class hangmanApi(remote.Service): # change to HangManApi
             letter = "{}".format(request.letter)
             if len(letter) > 1 or letter.isalpha() is False:
                return Response(response="Please enter a letter")
-            else:
-               game_data = get_by_urlsafe(request.urlsafeKey, Game)
-               game = Game.query().get()
-               n = game.lettersUsed[0]
-               print game.lettersUsed[0]
-               print game.word
-               num = hitOrMissLetter(letter, game)
-               return Response(response=num, progress=game.progress,
+            else: 
+                game_data = get_by_urlsafe(request.urlsafeKey, Game)
+                game = Game.query().get()
+                if letter in game.lettersUsed:
+                    n = game.lettersUsed[0]
+                    print game.lettersUsed[0]
+                    print game.word
+                    num = '{} has already been used'.format(letter)
+                else:
+                    num = hitOrMissLetter(letter, game)
+                return Response(response=num, progress=game.progress,
                                lettersUsed=game.lettersUsed)# Letters(items=[i.get_letter() for i in game.lettersUsed]))
     
     @endpoints.method(REQUEST_NEW_GAME, NewGameForm, path="new_game", http_method="GET", name="new_game")
@@ -194,7 +197,7 @@ def hitOrMissLetter(letter, game):
         if game.guesses == maxGuess:
             return "you have failed to guess this word."
         else:
-            return "{} is not in the word. ".format(game.lettersUsed)
+            return "{} is not in the word. ".format(letter)
 
 
 
