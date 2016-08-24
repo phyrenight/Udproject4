@@ -73,8 +73,7 @@ class hangmanApi(remote.Service): # change to HangManApi
     @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="GET", name="letter")
     def letterGiven(self, request):
         game_data = get_by_urlsafe(request.urlsafeKey, Game)
-        print game_data
-        game = Game.query().get()
+        #end_Game(game_data, True)
         if game_data.endGame == False:
             if request.letter is None:
                 response ="Nothing entered. Please enter a letter." 
@@ -168,7 +167,7 @@ class hangmanApi(remote.Service): # change to HangManApi
           #  print user
           #  userScores = Score.query(Score.player == user.name)
           # print userScores
-            return UserScores(items=[i.get_form() for i in Score.query(Score.Player == request.name)])
+            return UserScores(items=[i.get_form() for i in Score.query(Score.player == request.name).fetch()])
         except:
             return UserScores(message = "No scores were found for this user.")   
 
@@ -176,7 +175,8 @@ class hangmanApi(remote.Service): # change to HangManApi
                       http_method="Get", name="high_score")
     def get_high_score(self, request):
         try:
-            highScore = Score.query().order_by(+score)
+            highScore = Score.query().fetch() #.order_by(+score)
+            print highScore
             return UserScores(items=[i.get_form() for i in highScore])
         except:
             return UserScores(message = "No high scores to return")
@@ -223,8 +223,12 @@ def hitOrMissLetter(letter, game):
 def end_Game(game, won):
     game.endGame = True
     game.put()
+    user = User.query(User.key == game.user).get()
+    #print user.name
     gameScore = get_Score(game, won)
-    score = Score(player=game.user, score=gameScore,won=won)
+    #print game.user
+    print gameScore
+    score = Score(player=user.name, score=gameScore,won=won)
     score.put()
 
 def get_Score(game, won):

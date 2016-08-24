@@ -98,7 +98,8 @@ class Score(ndb.Model):
 
     def get_form(self):
         score = ScoreForm()
-        score.player = self.user.get().name
+        score.name = self.player #user.get().name
+        print score.name
         score.date = str(self.date)
         score.won = self.won
         score.score = self.score
