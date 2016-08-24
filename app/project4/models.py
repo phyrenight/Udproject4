@@ -104,6 +104,7 @@ class Score(ndb.Model):
         score.score = self.score
         return score
 
+
 class ScoreForm(messages.Message):
     name = messages.StringField(1, required=True)
     date = messages.StringField(2, required=True)
@@ -115,6 +116,7 @@ class UsersGames(messages.Message):
 
 class UserScores(messages.Message):
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+    message = messages.StringField(2)
 
 class Letter(messages.Message):
     letter = messages.StringField(1)

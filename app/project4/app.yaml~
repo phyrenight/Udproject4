@@ -11,9 +11,6 @@ handlers:
 - url: /
   static_files: templates/main.html
   upload: templates/index\.html
-- url: /new_game/
-  static_files: templates/main.html
-  upload: templates/index\.html
 - url: /js
   static_dir: static/js  
 
