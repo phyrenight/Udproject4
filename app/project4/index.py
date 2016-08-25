@@ -7,6 +7,7 @@ import random
 import string
 from models import Game, User, Score
 from models import NewGameForm, UsersGames, UserScores, Letters
+from models import Rankings, RankingForm
 import hashlib
 from utils import get_by_urlsafe
 lst = ["cat", "carp", "king"]
@@ -180,6 +181,28 @@ class hangmanApi(remote.Service): # change to HangManApi
             return UserScores(items=[i.get_form() for i in highScore])
         except:
             return UserScores(message = "No high scores to return")
+
+    @endpoints.method(VOIDMESSAGE, Rankings, path='/rankings',
+                      http_method='Get', name="rankings")
+    def get_user_rankings(self, request):
+        items = []
+        users = User.query().fetch()
+        print users
+        for i in users:
+            usersGames = Score.query(Score.player == i.name).fetch()
+            finishedGames = len(usersGames)
+            for n in usersGames:
+                totalScore =+ n.score
+            percent = totalScore/finishedGames
+            items.append(RankingForm(player=i.name,
+                                       finishedGames=finishedGames,
+                                       totalScore=totalScore,
+                                       percent=percent))
+            print percent
+            print totalScore
+            print len(usersGames)
+            print items
+            return Rankings(items=items)
 
 def hitOrMissLetter(letter, game):
     """

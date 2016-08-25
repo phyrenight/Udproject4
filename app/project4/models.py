@@ -124,3 +124,13 @@ class Letter(messages.Message):
 
 class Letters(messages.Message):
     items = messages.StringField( 1, repeated=True) 
+
+class RankingForm(messages.Message):
+    player = messages.StringField(1, required=True)
+    totalScore = messages.IntegerField(2, required=True)
+    percent = messages.IntegerField(3, required=True)
+    finishedGames = messages.IntegerField(4, required=True)
+
+
+class Rankings(messages.Message):
+    items = messages.MessageField(RankingForm, 1, repeated=True)
