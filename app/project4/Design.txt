@@ -1,0 +1,37 @@
+Google Endpoints Project
+
+What changes have been made to the models property?
+
+Game model
+ added progress - shows the users progress at guessing the word.
+                 After each correct guess, an * are replace by the correct letter.
+ added lettersUsed - a list of all the user guessed letter. This way users 
+                     can see what letters they already used.
+                    This is also used to keep track of the users guess per turn.
+added hint - Used to store the definition of the word. Will be 
+             used to give users a hint as to what the word is.
+added function hideWord - converts the letters in the word to *.
+                       This is needed to hide the word so the user can guess it.
+
+Scores model
+  scores - Score property replaces the guesses property. Scores is passed this number from ther get_score function. 
+  added function to calculate score.
+  function get_score()
+           - adds points for guessing the word (+100)
+           - adds points for the word containing x and z
+             x and z are in very few words
+           - points are added for each letter guessed in the 
+             word.
+           - 0 points for losing or giving up. 
+
+What difficulties where had making these changes?
+
+- I had trouble implementing lettersUsed in Game. I originally had it set up as an array property in the database.After receiving an error message and testing different things I went back to the documentation.In the documentation it stated that googles ndb database does not support arrays. Documentation gave an alternative to using an array which making the property repeatable.After further testing 
+
+- Implementing the dictionary Api into the project. The reason why to incorporate an api are:
+            - A larger database of words for the user to use.
+            - Makes the code easier to write. Not having to hard code in every single word and their definitions.
+            - Bonus it includes definitions for every word that can be used for each games hint.
+            - eliminates the need for another model for the word and definition, which makes the program smaller.
+The troubles:
+            I needed to find a suitable api that was easy to implement, the words were in English, free to use, had many dictionary entries.I found that in (wordnik)[http://developer.wordnik.com/] api. After importing wordnik errors appeared on the commandline. Looking through the documentation I found out that libraries not already in google app engine need to import another way. That way was to use import sys and add this line to my code - sys.path.insert(0, 'lib'). Then a function to get the word and definition to assign to the game and to hide the word.
