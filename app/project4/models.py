@@ -7,7 +7,7 @@ from wordnik import *
 
 
 apiUrl = 'http://api.wordnik.com/v4'
-apiKey = ""
+apiKey = "          "
 client = swagger.ApiClient(apiKey, apiUrl)
 
 class User(ndb.Model):
