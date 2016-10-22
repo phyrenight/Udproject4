@@ -10,8 +10,6 @@ from models import NewGameForm, UsersGames, UserScores, Letters
 from models import Rankings, RankingForm
 import hashlib
 from utils import get_by_urlsafe
-lst = ["cat", "carp", "king"]
-word = "hello"
 
 VOIDMESSAGE = endpoints.ResourceContainer(
     message_types.VoidMessage)
@@ -73,6 +71,9 @@ class hangmanApi(remote.Service): # change to HangManApi
     # write a if statement to test if letter is in lettersUsed before continuing
     @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="GET", name="letter")
     def letterGiven(self, request):
+        """
+            checks to see if user's guess is in the word.
+        """
         game_data = get_by_urlsafe(request.urlsafeKey, Game)
         #end_Game(game_data, True)
         if game_data.endGame == False:
@@ -120,7 +121,9 @@ class hangmanApi(remote.Service): # change to HangManApi
     @endpoints.method(REGISTER_USER, SingleMessage, path='register_User',
                       http_method="POST", name='register_User')
     def UserRegister(self, request):
-  
+        """
+            register a new user.
+        """
         user = User()
         user.name = request.name
         user.email = request.email
@@ -130,6 +133,9 @@ class hangmanApi(remote.Service): # change to HangManApi
     @endpoints.method(REQUEST_GAME, NewGameForm, path='cancel_game/{urlsafeKey}', http_method="POST",
                      name='cancel_game')
     def CancelGame(self, request):
+        """
+           Cancels one of the user's game.
+        """
         game = get_by_urlsafe(request.urlsafeKey, Game)
         if game.endGame:
             return game.to_form('game already ended.')
@@ -139,6 +145,9 @@ class hangmanApi(remote.Service): # change to HangManApi
 
     @endpoints.method(REQUEST_WORD, UsersGames, path='game_history/{name}', name='user_history', http_method="GET")
     def get_history(self,request):
+        """
+           gets the user's game history.
+        """
        # try:
         print request.name
         user = User.query(User.name == request.name).get()
@@ -163,6 +172,9 @@ class hangmanApi(remote.Service): # change to HangManApi
 
     @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
     def get_user_score(self, request):
+        """
+            gets a list of the user's scores
+        """
         try:
           #  user = User.query(User.name == request.name).get()
           #  print user
@@ -175,6 +187,10 @@ class hangmanApi(remote.Service): # change to HangManApi
     @endpoints.method(VOIDMESSAGE, UserScores, path='/score/High_scores',
                       http_method="Get", name="high_score")
     def get_high_score(self, request):
+        """
+            get a list of the users with the highest scores.
+            returns: UserScores - message class
+        """
         try:
             highScore = Score.query().fetch() #.order_by(+score)
             print highScore
@@ -185,6 +201,9 @@ class hangmanApi(remote.Service): # change to HangManApi
     @endpoints.method(VOIDMESSAGE, Rankings, path='/rankings',
                       http_method='Get', name="rankings")
     def get_user_rankings(self, request):
+        """
+            gets a list of users and their score/ranking
+        """
         items = []
         users = User.query().fetch()
         print users
@@ -207,6 +226,7 @@ class hangmanApi(remote.Service): # change to HangManApi
 def hitOrMissLetter(letter, game):
     """
        args: letter- user's letter guess
+            game - current game.
        checks to see if the word contains the guesses letter.
        returns: a message if you passsed or failed.
     """
@@ -244,6 +264,11 @@ def hitOrMissLetter(letter, game):
 
 
 def end_Game(game, won):
+    """
+        args: game - 
+              won -
+        ends the user's game.
+    """
     game.endGame = True
     game.put()
     user = User.query(User.key == game.user).get()
@@ -255,6 +280,12 @@ def end_Game(game, won):
     score.put()
 
 def get_Score(game, won):
+    """
+        args: game - 
+              won -
+        calculates the score for the user's game.
+        returns: finalScore - the final score of the game. 
+    """
     finalScore = 0 
     value = 10
     if won == True:
