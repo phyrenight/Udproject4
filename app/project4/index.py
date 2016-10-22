@@ -69,7 +69,7 @@ class SingleMessage(messages.Message):
 class hangmanApi(remote.Service): # change to HangManApi
 
     # write a if statement to test if letter is in lettersUsed before continuing
-    @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="GET", name="make_guess")
+    @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="POST", name="make_guess")
     def letterGiven(self, request):
         """
             checks to see if user's guess is in the word.
