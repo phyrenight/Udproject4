@@ -75,7 +75,6 @@ class hangmanApi(remote.Service): # change to HangManApi
             checks to see if user's guess is in the word.
         """
         game_data = get_by_urlsafe(request.urlsafeKey, Game)
-        #end_Game(game_data, True)
         if game_data.endGame == False:
             if request.letter is None:
                 response ="Nothing entered. Please enter a letter." 
@@ -87,8 +86,6 @@ class hangmanApi(remote.Service): # change to HangManApi
                 else: 
                     if letter in game_data.lettersUsed:
                         n = game_data.lettersUsed[0]
-                        print game_data.lettersUsed[0]
-                        print game_data.word
                         message = '{} has already been used'.format(letter)
                     else:
                         message = hitOrMissLetter(letter, game_data)
@@ -110,7 +107,6 @@ class hangmanApi(remote.Service): # change to HangManApi
                      word - a randomly generated word
                      progress - astericks string that is as long as the word
         """
-        print "hello"
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
@@ -148,16 +144,9 @@ class hangmanApi(remote.Service): # change to HangManApi
         """
            gets the user's game history.
         """
-       # try:
-        print request.name
         user = User.query(User.name == request.name).get()
-        print user.key
         games = Game.query(Game.user == user.key)
-        #print games.user
         return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
-        #except:
-           # print "user not found"
-           # pass
 
     @endpoints.method(REQUEST_GAME, NewGameForm, path='game/{urlsafeKey}', http_method='GET', name='game')
     def get_game(self, request):
@@ -176,10 +165,6 @@ class hangmanApi(remote.Service): # change to HangManApi
             gets a list of the user's scores
         """
         try:
-          #  user = User.query(User.name == request.name).get()
-          #  print user
-          #  userScores = Score.query(Score.player == user.name)
-          # print userScores
             return UserScores(items=[i.get_form() for i in Score.query(Score.player == request.name).fetch()])
         except:
             return UserScores(message = "No scores were found for this user.")   
@@ -192,8 +177,7 @@ class hangmanApi(remote.Service): # change to HangManApi
             returns: UserScores - message class
         """
         try:
-            highScore = Score.query().fetch() #.order_by(+score)
-            print highScore
+            highScore = Score.query().fetch()
             return UserScores(items=[i.get_form() for i in highScore])
         except:
             return UserScores(message = "No high scores to return")
@@ -206,7 +190,6 @@ class hangmanApi(remote.Service): # change to HangManApi
         """
         items = []
         users = User.query().fetch()
-        print users
         for i in users:
             usersGames = Score.query(Score.player == i.name).fetch()
             finishedGames = len(usersGames)
@@ -217,10 +200,6 @@ class hangmanApi(remote.Service): # change to HangManApi
                                        finishedGames=finishedGames,
                                        totalScore=totalScore,
                                        percent=percent))
-            print percent
-            print totalScore
-            print len(usersGames)
-            print items
             return Rankings(items=items)
 
 def hitOrMissLetter(letter, game):
@@ -230,14 +209,11 @@ def hitOrMissLetter(letter, game):
        checks to see if the word contains the guesses letter.
        returns: a message if you passsed or failed.
     """
-    print game
     maxGuess = 6
     guess = game.lettersUsed
     if game.lettersUsed is None:
-        print "hello"
         game.lettersUsed = [] 
     game.lettersUsed.append(letter) # place holder till letterUsed can be changed to a ListProperty 
-    print game.lettersUsed
     # update used letter bank to include letter
     if game.word.find(letter) > -1:
         lst = list(game.progress)
@@ -259,7 +235,6 @@ def hitOrMissLetter(letter, game):
         if game.guesses == maxGuess:
             return "You have failed to guess this word."
         else:
-            print "hello"
             return "{} is not in the word. ".format(letter)
 
 
@@ -272,10 +247,7 @@ def end_Game(game, won):
     game.endGame = True
     game.put()
     user = User.query(User.key == game.user).get()
-    #print user.name
     gameScore = get_Score(game, won)
-    #print game.user
-    print gameScore
     score = Score(player=user.name, score=gameScore,won=won)
     score.put()
 
