@@ -7,7 +7,7 @@ from wordnik import *
 
 
 apiUrl = 'http://api.wordnik.com/v4'
-apiKey = "2551259012aa25070f29c8321e8f982d5c699"
+apiKey = ""
 client = swagger.ApiClient(apiKey, apiUrl)
 
 class User(ndb.Model):
@@ -17,7 +17,6 @@ class User(ndb.Model):
 
 
 class Game(ndb.Model):
-    # player = ndb.StringProperty(required=True kind='User')
     word = ndb.StringProperty()
     progress = ndb.StringProperty()  # hidden word displaying the parts
                                      # that have been guessed right
