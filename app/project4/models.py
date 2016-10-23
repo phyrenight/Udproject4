@@ -50,14 +50,17 @@ class Game(ndb.Model):
         game.put()
         return game
 
-    def get_form(self):
+    def get_form(self, message):
         form = NewGameForm()
-        form.urlsafeKey = self.key.urlsafe()
-        form.userName = self.user.get().name
-        #form.message = message
-        form.hint = self.hint
-        form.word = self.word
-        form.progress = self.progress
+        if self.user == None:
+            form.message = message
+        else:
+            form.urlsafeKey = self.key.urlsafe()
+            form.userName = self.user.get().name
+            form.message = message
+            form.hint = self.hint
+            form.word = self.word
+            form.progress = self.progress
         return form
 
     def getWord(self):
@@ -81,12 +84,12 @@ class Game(ndb.Model):
         return letter
 
 class NewGameForm(messages.Message):
-    urlsafeKey =  messages.StringField(1, required=True)
-    userName = messages.StringField(2, required=True)
-    hint = messages.StringField(3, required=True)
-    #message = messages.StringField(4, required=True)
-    word = messages.StringField(5, required=True)
-    progress = messages.StringField(6, required=True)
+    urlsafeKey =  messages.StringField(1)
+    userName = messages.StringField(2)
+    hint = messages.StringField(3)
+    message = messages.StringField(4)
+    word = messages.StringField(5)
+    progress = messages.StringField(6)
 
 
 class Score(ndb.Model):

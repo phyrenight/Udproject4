@@ -97,7 +97,7 @@ class hangmanApi(remote.Service): # change to HangManApi
                              lettersUsed=game_data.lettersUsed)
         
 # new_game
-    @endpoints.method(REQUEST_NEW_GAME, NewGameForm, path="/new_game", http_method="GET", name="new_game")
+    @endpoints.method(REQUEST_NEW_GAME,  NewGameForm, path="/new_game", http_method="GET", name="new_game")
     def newGame(self, request):
         """ 
             args: choice - contains the users guessed letter
@@ -107,12 +107,13 @@ class hangmanApi(remote.Service): # change to HangManApi
                      word - a randomly generated word
                      progress - astericks string that is as long as the word
         """
+        game = Game()
         user = User.query(User.name == request.user_name).get()
         if not user:
-            raise endpoints.NotFoundException(
-                        "That user does not exist")
-        game = Game.new_game(user.key)
-        return game.get_form() #"Good luck")
+            return game.get_form(message="That user does not exist")
+        else:
+            game = Game.new_game(user.key)
+            return game.get_form(message="Good luck!") #"Good luck")
 
     @endpoints.method(REGISTER_USER, SingleMessage,
                       path='register_User',
@@ -123,7 +124,9 @@ class hangmanApi(remote.Service): # change to HangManApi
             register a new user.
             returns SingleMessage - message stating whether registration was successful.
         """
-
+        if request.name == None or request.email == None:
+            return SingleMessage(response="No user name/email entered.")
+        print request.name
         user = User.query().fetch()
         if user:
             for i in user:
@@ -151,10 +154,10 @@ class hangmanApi(remote.Service): # change to HangManApi
            return SingleMessage(response=game)
         else:
             if game.endGame:
-                return SingleMessage('game already ended.')
+                return SingleMessage(response='game already ended.')
             else: 
                 end_Game(game, won=False)
-                return SingleMessage("Game cancelled.")
+                return SingleMessage(response="Game cancelled.")
         
 
     @endpoints.method(REQUEST_WORD, UsersGames, path='game_history/{name}', name='user_history', http_method="GET")
@@ -163,8 +166,11 @@ class hangmanApi(remote.Service): # change to HangManApi
            gets the user's game history.
         """
         user = User.query(User.name == request.name).get()
-        if not user:
-            raise endpoints.NotFoundException("User can not be found.")
+        if user == None:
+            #raise endpoints.NotFoundException("User can not be found.")
+            game = Game()
+            game.get_form(message ="User can not be found")
+            return UsersGames(items=game)
         else:
             games = Game.query(Game.user == user.key)
             return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
@@ -174,25 +180,24 @@ class hangmanApi(remote.Service): # change to HangManApi
         """
             gets a single game
         """
-        # add try  incase game does not exist 
-        # think of adding a check so only game owner can access game
-        # add check to maek sure game is active
         game = get_by_urlsafe(request.urlsafeKey, Game)
-        if not game:
-            raise endpoints.NotFoundException("Game not found.")
+        if game == 'Invalid Key':
+            game = Game()
+            return game.get_form(message="Game not found.")
         else:
-            return game.get_form() # "game retrieved") fix this should take a message or not???
+            return game.get_form(message="game retrieved.")
 
     @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
     def get_user_score(self, request):
         """
             gets a list of the user's scores
         """
-        try:
-            return UserScores(items=[i.get_form() for i in Score.query(Score.player == request.name).fetch()])
-        except:
-            return UserScores(message = "No scores were found for this user.")   
-
+        score = Score.query(Score.player == request.name).fetch()
+        if len(score) == 0:
+            return UserScores(message = "No scores were found for this user.")
+        else:
+            return UserScores(items=[i.get_form() for i in score])
+        
     @endpoints.method(VOIDMESSAGE, UserScores, path='/score/High_scores',
                       http_method="Get", name="high_score")
     def get_high_score(self, request):
@@ -288,11 +293,11 @@ def get_Score(game, won):
         finalScore += 100
         finalScore += (len(game.word) * value)
     else:
-        lettersGuessedCorrect
+        lettersGuessedCorrect = 0
         for i in game.progress:
             if i != '*':
                 lettersGuessedCorrect += 1
-                finalScore += ((len(game.word - letterGuessedCorrect)) * value)
+                finalScore += ((len(game.word - lettersGuessedCorrect)) * value)
     if 'x' in game.progress:
         finalScore += value
     if 'z' in game.progress:
