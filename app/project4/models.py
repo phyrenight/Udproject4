@@ -54,7 +54,7 @@ class Game(ndb.Model):
         form = NewGameForm()
         form.urlsafeKey = self.key.urlsafe()
         form.userName = self.user.get().name
-       # form.message = message
+        #form.message = message
         form.hint = self.hint
         form.word = self.word
         form.progress = self.progress
@@ -84,7 +84,7 @@ class NewGameForm(messages.Message):
     urlsafeKey =  messages.StringField(1, required=True)
     userName = messages.StringField(2, required=True)
     hint = messages.StringField(3, required=True)
-#    message = messages.StringField(4, required=True)
+    #message = messages.StringField(4, required=True)
     word = messages.StringField(5, required=True)
     progress = messages.StringField(6, required=True)
 

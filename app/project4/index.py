@@ -114,30 +114,48 @@ class hangmanApi(remote.Service): # change to HangManApi
         game = Game.new_game(user.key)
         return game.get_form() #"Good luck")
 
-    @endpoints.method(REGISTER_USER, SingleMessage, path='register_User',
-                      http_method="POST", name='register_User')
+    @endpoints.method(REGISTER_USER, SingleMessage,
+                      path='register_User',
+                      http_method="POST",
+                      name='register_User')
     def UserRegister(self, request):
         """
             register a new user.
+            returns SingleMessage - message stating whether registration was successful.
         """
-        user = User()
-        user.name = request.name
-        user.email = request.email
-        user.put()
+
+        user = User.query().fetch()
+        if user:
+            for i in user:
+                print i
+                if request.name == i.name:
+                    print i
+                    return SingleMessage(response="User name already in use.")
+                elif request.email == i.email:
+                    return SingleMessage(response="Email address already in use.")
+        
+        newUser = User()
+        newUser.name = request.name
+        newUser.email = request.email
+        newUser.put()
         return SingleMessage(response="New user registered")
-     
-    @endpoints.method(REQUEST_GAME, NewGameForm, path='cancel_game/{urlsafeKey}', http_method="POST",
+                     #NewGameForm
+    @endpoints.method(REQUEST_GAME, SingleMessage, path='cancel_game/{urlsafeKey}', http_method="POST",
                      name='cancel_game')
     def CancelGame(self, request):
         """
            Cancels one of the user's game.
         """
         game = get_by_urlsafe(request.urlsafeKey, Game)
-        if game.endGame:
-            return game.to_form('game already ended.')
+        if game == 'Invalid Key':
+           return SingleMessage(response=game)
         else:
-            end_Game(game, won=False)
-            return game.get_form('game_cancelled.')
+            if game.endGame:
+                return SingleMessage('game already ended.')
+            else: 
+                end_Game(game, won=False)
+                return SingleMessage("Game cancelled.")
+        
 
     @endpoints.method(REQUEST_WORD, UsersGames, path='game_history/{name}', name='user_history', http_method="GET")
     def get_history(self,request):
@@ -145,8 +163,11 @@ class hangmanApi(remote.Service): # change to HangManApi
            gets the user's game history.
         """
         user = User.query(User.name == request.name).get()
-        games = Game.query(Game.user == user.key)
-        return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
+        if not user:
+            raise endpoints.NotFoundException("User can not be found.")
+        else:
+            games = Game.query(Game.user == user.key)
+            return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
 
     @endpoints.method(REQUEST_GAME, NewGameForm, path='game/{urlsafeKey}', http_method='GET', name='game')
     def get_game(self, request):
@@ -156,8 +177,11 @@ class hangmanApi(remote.Service): # change to HangManApi
         # add try  incase game does not exist 
         # think of adding a check so only game owner can access game
         # add check to maek sure game is active
-        game = get_by_urlsafe(request.urlsafeKey, Game) 
-        return game.get_form() # "game retrieved") fix this should take a message or not???
+        game = get_by_urlsafe(request.urlsafeKey, Game)
+        if not game:
+            raise endpoints.NotFoundException("Game not found.")
+        else:
+            return game.get_form() # "game retrieved") fix this should take a message or not???
 
     @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
     def get_user_score(self, request):

@@ -18,10 +18,12 @@ def get_by_urlsafe(urlsafe, model):
     try:
         key = ndb.Key(urlsafe=urlsafe)
     except TypeError:
-        raise endpoints.BadRequestException('Invalid Key')
+        return 'Invalid Key'
+        #raise endpoints.BadRequestException('Invalid Key')
     except Exception, e:
         if e.__class__.__name__ == 'ProtocolBufferDecodeError':
-            raise endpoints.BadRequestException('Invalid Key')
+            return 'Invalid Key'
+            #raise endpoints.BadRequestException('Invalid Key')
         else:
             raise
     entity = key.get()
