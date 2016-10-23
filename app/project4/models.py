@@ -40,6 +40,10 @@ class Game(ndb.Model):
 
     @classmethod
     def new_game(cls, user):
+        '''
+            puts the data (user info and word info) together to form a user game
+            returns - an object of class Game
+        '''
         game = Game(user=user,
         	        endGame=False)
         word, definition = cls.getWord(game)
@@ -75,7 +79,10 @@ class Game(ndb.Model):
     	definition = defApi.getDefinitions(word,
     		                                sourceDictionaries='wiktionary',
     		                                limit=1)[0].text
-        return word, definition
+        if len(word) == 0 or len(definition) == 0:
+            getWord()
+        else:
+            return word, definition
     
 
     def get_letter(self):

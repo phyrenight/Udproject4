@@ -39,7 +39,7 @@ Go to wordknik and register for a api key.Assign wordknik key to to the variable
   - returns: SingleMessage
   - description: registers the user in the database
 
-- **cancelGame**
+- **CancelGame**
   - method: Post
   - cancel_game/{urlsafeKey}
   - parmeters: urlsafekey
@@ -53,14 +53,14 @@ Go to wordknik and register for a api key.Assign wordknik key to to the variable
   - returns: Response
   - description: Takes user input and verifies it is a letter or not. Then checks to see if it is in the word.
 
-- **getHistory**
+- **get_history**
   - method: Get
   - path: game_history/{urlsafeKey}
   - parameters: name
   - returns: UserGames
   - description: Gets all the users games.
 
-- **getGame**
+- **get_game**
   - method: Get
   - path: game/{urlsafeKey}
   - parameters:urlsafeKey
