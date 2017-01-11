@@ -16,31 +16,31 @@ VOIDMESSAGE = endpoints.ResourceContainer(
 
 # used for returninga value
 REQUEST_GAME = endpoints.ResourceContainer(
-     urlsafeKey = messages.StringField(1),
+     urlsafeKey=messages.StringField(1),
 )
 REQUEST_LETTER = endpoints.ResourceContainer(
     message_types.VoidMessage,
-    urlsafeKey = messages.StringField(1),
-    letter = messages.StringField(2),
+    urlsafeKey=messages.StringField(1),
+    letter=messages.StringField(2),
 )
 REQUEST_WORD = endpoints.ResourceContainer(
-    name = messages.StringField(1),
+    name=messages.StringField(1),
 )
 
 REQUEST_NEW_GAME = endpoints.ResourceContainer(
-    user_name = messages.StringField(1),
+    user_name=messages.StringField(1),
     )
 
 REGISTER_USER = endpoints.ResourceContainer(
-    name = messages.StringField(1),
-   # pwd = messages.StringField(2),
-   # verifyPwd = messages.StringField(3),
-    email = messages.StringField(4),
+    name=messages.StringField(1),
+    # pwd = messages.StringField(2),
+    # verifyPwd = messages.StringField(3),
+    email=messages.StringField(4),
     )
 
 LOGIN_USER = endpoints.ResourceContainer(
-    email = messages.StringField(1),
-    pwd = messages.StringField(2),
+    email=messages.StringField(1),
+    pwd=messages.StringField(2),
     )
 
 
@@ -50,11 +50,13 @@ class ScoreForm(messages.Message):
     score = messages.IntegerField(2)
     date = messages.StringField(3)
 
+
 class Response(messages.Message):
     response = messages.StringField(1)
     progress = messages.StringField(2)
     guess = messages.IntegerField(3)
     lettersUsed = messages.StringField(4, repeated=True)
+
 
 class NewGame(messages.Message):
     word = messages.StringField(1)
@@ -62,44 +64,55 @@ class NewGame(messages.Message):
     guess = messages.IntegerField(3)
     hint = messages.StringField(4)
 
+
 class SingleMessage(messages.Message):
     response = messages.StringField(1)
 
-@endpoints.api(name='hangmanEndPoints', version='v1')
-class hangmanApi(remote.Service): # change to HangManApi
 
-    # write a if statement to test if letter is in lettersUsed before continuing
-    @endpoints.method(REQUEST_LETTER, Response, path="game_play/{urlsafeKey}", http_method="POST", name="make_guess")
+@endpoints.api(name='hangmanEndPoints',
+               version='v1')
+class hangmanApi(remote.Service):  # change to HangManApi
+
+    @endpoints.method(REQUEST_LETTER,
+                      Response,
+                      path="game_play/{urlsafeKey}",
+                      http_method="POST",
+                      name="make_guess")
     def letterGiven(self, request):
         """
             checks to see if user's guess is in the word.
         """
         game_data = get_by_urlsafe(request.urlsafeKey, Game)
-        if game_data.endGame == False:
+        if game_data.endGame is False:
             if request.letter is None:
-                response ="Nothing entered. Please enter a letter." 
+                response = "Nothing entered. Please enter a letter."
                 return Response(response=response)
-            else:   
+            else:
                 letter = "{}".format(request.letter)
                 if len(letter) > 1 or letter.isalpha() is False:
-                   return Response(response="Please enter a letter")
-                else: 
+                    return Response(response="Please enter a letter")
+                else:
                     if letter in game_data.lettersUsed:
                         n = game_data.lettersUsed[0]
                         message = '{} has already been used'.format(letter)
                     else:
                         message = hitOrMissLetter(letter, game_data)
-                    return Response(response=message, progress=game_data.progress,
-                               lettersUsed=game_data.lettersUsed)# Letters(items=[i.get_letter() for i in game.lettersUsed]))
+                    return Response(response=message,
+                                    progress=game_data.progress,
+                                    lettersUsed=game_data.lettersUsed)
         else:
             message = "Game has already ended"
-            return Response(response=message, progress=game_data.progress,
-                             lettersUsed=game_data.lettersUsed)
-        
-# new_game
-    @endpoints.method(REQUEST_NEW_GAME,  NewGameForm, path="/new_game", http_method="GET", name="new_game")
+            return Response(response=message,
+                            progress=game_data.progress,
+                            lettersUsed=game_data.lettersUsed)
+
+    @endpoints.method(REQUEST_NEW_GAME,
+                      NewGameForm,
+                      path="/new_game",
+                      http_method="GET",
+                      name="new_game")
     def newGame(self, request):
-        """ 
+        """
             args: choice - contains the users guessed letter
             creates a new game
             returns: user - urlsafekey based off of the users key
@@ -113,69 +126,78 @@ class hangmanApi(remote.Service): # change to HangManApi
             return game.get_form(message="That user does not exist")
         else:
             game = Game.new_game(user.key)
-            return game.get_form(message="Good luck!") #"Good luck")
+            return game.get_form(message="Good luck!")
 
-    @endpoints.method(REGISTER_USER, SingleMessage,
+    @endpoints.method(REGISTER_USER,
+                      SingleMessage,
                       path='register_User',
                       http_method="POST",
                       name='register_User')
     def UserRegister(self, request):
         """
             register a new user.
-            returns SingleMessage - message stating whether registration was successful.
+            returns SingleMessage - message stating whether registration
+                                    was successful.
         """
-        if request.name == None or request.email == None:
+        if request.name is None or request.email is None:
             return SingleMessage(response="No user name/email entered.")
         print request.name
         user = User.query().fetch()
         if user:
             for i in user:
-                print i
                 if request.name == i.name:
-                    print i
                     return SingleMessage(response="User name already in use.")
                 elif request.email == i.email:
-                    return SingleMessage(response="Email address already in use.")
-        
+                    return SingleMessage(response="Email already in use.")
+
         newUser = User()
         newUser.name = request.name
         newUser.email = request.email
         newUser.put()
         return SingleMessage(response="New user registered")
-                     #NewGameForm
-    @endpoints.method(REQUEST_GAME, SingleMessage, path='cancel_game/{urlsafeKey}', http_method="POST",
-                     name='cancel_game')
+
+    @endpoints.method(REQUEST_GAME,
+                      SingleMessage,
+                      path='cancel_game/{urlsafeKey}',
+                      http_method="POST",
+                      name='cancel_game')
     def CancelGame(self, request):
         """
            Cancels one of the user's game.
         """
         game = get_by_urlsafe(request.urlsafeKey, Game)
         if game == 'Invalid Key':
-           return SingleMessage(response=game)
+            return SingleMessage(response=game)
         else:
             if game.endGame:
                 return SingleMessage(response='game already ended.')
-            else: 
+            else:
                 end_Game(game, won=False)
                 return SingleMessage(response="Game cancelled.")
-        
 
-    @endpoints.method(REQUEST_WORD, UsersGames, path='game_history/{name}', name='user_history', http_method="GET")
-    def get_history(self,request):
+    @endpoints.method(REQUEST_WORD,
+                      UsersGames,
+                      path='game_history/{name}',
+                      name='user_history',
+                      http_method="GET")
+    def get_history(self, request):
         """
            gets the user's game history.
         """
         user = User.query(User.name == request.name).get()
-        if user == None:
-            #raise endpoints.NotFoundException("User can not be found.")
+        if user is None:
             game = Game()
-            game.get_form(message ="User can not be found")
+            game.get_form(message="User can not be found")
             return UsersGames(items=game)
         else:
             games = Game.query(Game.user == user.key)
-            return UsersGames(items=[i.get_form() for i in games]) # Game.query(Game.user == user.key)])
+            return UsersGames(items=[i.get_form() for i in games])
 
-    @endpoints.method(REQUEST_GAME, NewGameForm, path='game/{urlsafeKey}', http_method='GET', name='game')
+    @endpoints.method(REQUEST_GAME,
+                      NewGameForm,
+                      path='game/{urlsafeKey}',
+                      http_method='GET',
+                      name='game')
     def get_game(self, request):
         """
             gets a single game
@@ -187,19 +209,26 @@ class hangmanApi(remote.Service): # change to HangManApi
         else:
             return game.get_form(message="game retrieved.")
 
-    @endpoints.method(REQUEST_WORD, UserScores, path='score/{name}', http_method='GET', name='user_score')
+    @endpoints.method(REQUEST_WORD,
+                      UserScores,
+                      path='score/{name}',
+                      http_method='GET',
+                      name='user_score')
     def get_user_score(self, request):
         """
             gets a list of the user's scores
         """
         score = Score.query(Score.player == request.name).fetch()
         if len(score) == 0:
-            return UserScores(message = "No scores were found for this user.")
+            return UserScores(message="No scores were found for this user.")
         else:
             return UserScores(items=[i.get_form() for i in score])
-        
-    @endpoints.method(VOIDMESSAGE, UserScores, path='/score/High_scores',
-                      http_method="Get", name="high_score")
+
+    @endpoints.method(VOIDMESSAGE,
+                      UserScores,
+                      path='/score/High_scores',
+                      http_method="Get",
+                      name="high_score")
     def get_high_score(self, request):
         """
             get a list of the users with the highest scores.
@@ -209,10 +238,13 @@ class hangmanApi(remote.Service): # change to HangManApi
             highScore = Score.query().fetch()
             return UserScores(items=[i.get_form() for i in highScore])
         except:
-            return UserScores(message = "No high scores to return")
+            return UserScores(message="No high scores to return")
 
-    @endpoints.method(VOIDMESSAGE, Rankings, path='/rankings',
-                      http_method='Get', name="rankings")
+    @endpoints.method(VOIDMESSAGE,
+                      Rankings,
+                      path='/rankings',
+                      http_method='Get',
+                      name="rankings")
     def get_user_rankings(self, request):
         """
             gets a list of users and their score/ranking
@@ -224,12 +256,13 @@ class hangmanApi(remote.Service): # change to HangManApi
             finishedGames = len(usersGames)
             for n in usersGames:
                 totalScore =+ n.score
-            percent = totalScore/finishedGames
+            percent = totalScore / finishedGames
             items.append(RankingForm(player=i.name,
-                                       finishedGames=finishedGames,
-                                       totalScore=totalScore,
-                                       percent=percent))
+                                     finishedGames=finishedGames,
+                                     totalScore=totalScore,
+                                     percent=percent))
             return Rankings(items=items)
+
 
 def hitOrMissLetter(letter, game):
     """
@@ -241,8 +274,8 @@ def hitOrMissLetter(letter, game):
     maxGuess = 6
     guess = game.lettersUsed
     if game.lettersUsed is None:
-        game.lettersUsed = [] 
-    game.lettersUsed.append(letter) # place holder till letterUsed can be changed to a ListProperty 
+        game.lettersUsed = []
+    game.lettersUsed.append(letter)
     # update used letter bank to include letter
     if game.word.find(letter) > -1:
         lst = list(game.progress)
@@ -269,7 +302,7 @@ def hitOrMissLetter(letter, game):
 
 def end_Game(game, won):
     """
-        args: game - 
+        args: game -
               won -
         ends the user's game.
     """
@@ -277,19 +310,20 @@ def end_Game(game, won):
     game.put()
     user = User.query(User.key == game.user).get()
     gameScore = get_Score(game, won)
-    score = Score(player=user.name, score=gameScore,won=won)
+    score = Score(player=user.name, score=gameScore, won=won)
     score.put()
+
 
 def get_Score(game, won):
     """
-        args: game - 
+        args: game -
               won -
         calculates the score for the user's game.
-        returns: finalScore - the final score of the game. 
+        returns: finalScore - the final score of the game.
     """
-    finalScore = 0 
+    finalScore = 0
     value = 10
-    if won == True:
+    if won:
         finalScore += 100
         finalScore += (len(game.word) * value)
     else:
@@ -297,7 +331,7 @@ def get_Score(game, won):
         for i in game.progress:
             if i != '*':
                 lettersGuessedCorrect += 1
-                finalScore += ((len(game.word - lettersGuessedCorrect)) * value)
+                finalScore += ((len(game.word-lettersGuessedCorrect))*value)
     if 'x' in game.progress:
         finalScore += value
     if 'z' in game.progress:
