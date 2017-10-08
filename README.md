@@ -1,22 +1,22 @@
-#Hangman endpoints
+# Hangman endpoints
 Endpoints for a hangman game.
 
-##Installation
+## Installation
  - 1 Download zip file or clone the repository
 
-##Setup
+## Setup
 Go to wordknik and register for a api key.Assign wordknik key to to the variable ApiKey in Models.py
 
-##To run
+## To run
  - 1) open command line prompt and navigate to the repo files.
  - 2) type `dev_appserver.py./
  - 3) goto [appspot webpage](https://apis-explorer.appspot.com/apis-explorer)
 
- ##Instructions
+## Instructions
  When you start the game a string of * will be displayed(numbers and punctuation marks will be visible as well).When you make a guess the used letter array will update to include that letter.If the letter was in the word, it will be placed in that position in the word. If you wrong more than 6 times you lose the game and the game will end.
 
 
-###How points are rewarded:
+### How points are rewarded:
  - 0 points are added to your score for losing/quiting
  - 100 points for guessing the word correctly
  - 10 points for each letter guessed correctly
@@ -24,7 +24,7 @@ Go to wordknik and register for a api key.Assign wordknik key to to the variable
     - guessing correctly that x is in the word
     - guessing correctly that z is in the word 
 
-##Endpoints
+## Endpoints
 - **newGame**
   - method: Get
   - path: new_game
@@ -88,7 +88,7 @@ Go to wordknik and register for a api key.Assign wordknik key to to the variable
   - returns: Rankings
   - description: Get a list of user with the highest scores
 
-##Models Include:
+## Models Include:
   - **User**
     - Stores unique name and (optional) email address.
 
@@ -98,7 +98,7 @@ Go to wordknik and register for a api key.Assign wordknik key to to the variable
   - **Score**
     - Records game data.
 
-##Forms Included:
+## Forms Included:
   - **NewGameForm**
     - urlsafeKey - id of the game
     - userName - name of the user
